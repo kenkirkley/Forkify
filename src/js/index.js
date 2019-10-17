@@ -11,6 +11,7 @@
 // Search: https://www.food2fork.com/api/search
 import Search from "./models/Search";
 import Recipe from "./models/Recipe";
+import List from "./models/List";
 import * as searchView from "./views/SearchView";
 import * as recipeView from "./views/RecipeView";
 import { elements, renderLoader, clearLoader } from "./views/base";
@@ -77,8 +78,6 @@ const controlRecipe = async () => {
 
       clearLoader();
       recipeView.renderRecipe(state.recipe);
-
-      console.log(state.recipe);
     } catch (error) {
       console.log(error);
       alert("Error Processing Recipe");
@@ -100,10 +99,22 @@ elements.searchResPages.addEventListener("click", e => {
   }
 });
 
-// Recipe Controller
-
 // window.addEventListener("hashchange", controlRecipe);
 // window.addEventListener("load", controlRecipe);
 ["hashchange", "load"].forEach(event =>
   window.addEventListener(event, controlRecipe)
 );
+
+elements.recipe.addEventListener("click", e => {
+  if (e.target.matches(".btn-decrease, .btn-decrease *")) {
+    if (state.recipe.servings > 1) {
+      state.recipe.updateServings("dec");
+    }
+  }
+  if (e.target.matches(".btn-increase, .btn-increase *")) {
+    state.recipe.updateServings("inc");
+  }
+  recipeView.updateServingsIngredients(state.recipe);
+});
+
+window.l = new List();

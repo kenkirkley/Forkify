@@ -23,7 +23,6 @@ export const renderLoader = parent => {
 
 export const clearLoader = () => {
   const loader = document.querySelector(`.${elementStrings.loader}`);
-  console.log(loader);
   if (loader) {
     loader.parentElement.removeChild(loader);
   }
