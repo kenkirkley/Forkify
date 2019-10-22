@@ -14,7 +14,9 @@ import Recipe from "./models/Recipe";
 import List from "./models/List";
 import * as searchView from "./views/SearchView";
 import * as recipeView from "./views/RecipeView";
+import * as listView from "./views/ListView";
 import { elements, renderLoader, clearLoader } from "./views/base";
+import Likes from "./models/Likes";
 
 // ******* GLOBAL STATE ******* //
 /*
@@ -24,6 +26,7 @@ import { elements, renderLoader, clearLoader } from "./views/base";
 - Liked Recipes
 */
 const state = {};
+window.state = state;
 
 const controlSearch = async () => {
   // 1) Get Query from view
@@ -85,6 +88,39 @@ const controlRecipe = async () => {
   }
 };
 
+const controlList = () => {
+  // create a new list if there is no list
+  if (!state.list) {
+    state.list = new List();
+  }
+  // Add each ingredient to the list and UI
+  state.recipe.ingredients.forEach(el => {
+    const item = state.list.addItem(el.count, el.unit, el.ingredient);
+    listView.renderItem(item);
+  });
+  //
+};
+
+const controlLike = () => {
+  if (!state.likes) {
+    state.likes = new Likes();
+  }
+  const currentID = state.recipe.id;
+  if (!state.likes.isLiked(currentID)) {
+    const newLike = state.likes.addLike(
+      currentID,
+      state.recipe.title,
+      state.recipe.author,
+      state.recipe.img
+    );
+
+    console.log(state.likes);
+  } else {
+    state.likes.deleteLike(currentID);
+    console.log(state.likes);
+  }
+};
+
 elements.searchForm.addEventListener("submit", e => {
   e.preventDefault();
   controlSearch();
@@ -105,16 +141,31 @@ elements.searchResPages.addEventListener("click", e => {
   window.addEventListener(event, controlRecipe)
 );
 
+elements.shopping.addEventListener("click", e => {
+  const id = e.target.closest(".shopping__item").dataset.itemid;
+  if (e.target.matches(".shopping__delete, .shopping__delete *")) {
+    state.list.deleteItem(id);
+    listView.deleteItem(id);
+  } else if (e.target.matches(".shopping__count-value")) {
+    const val = parseFloat(e.target.value);
+    state.list.updateCount(id, val);
+  }
+});
+
 elements.recipe.addEventListener("click", e => {
   if (e.target.matches(".btn-decrease, .btn-decrease *")) {
     if (state.recipe.servings > 1) {
       state.recipe.updateServings("dec");
+      recipeView.updateServingsIngredients(state.recipe);
     }
-  }
-  if (e.target.matches(".btn-increase, .btn-increase *")) {
+  } else if (e.target.matches(".btn-increase, .btn-increase *")) {
     state.recipe.updateServings("inc");
+    recipeView.updateServingsIngredients(state.recipe);
+  } else if (e.target.matches(".recipe__btn-add, .recipe__btn-add *")) {
+    controlList();
+  } else if (e.target.matches("recipe__love, .recipe__love *")) {
+    controlLike();
   }
-  recipeView.updateServingsIngredients(state.recipe);
 });
 
 window.l = new List();
