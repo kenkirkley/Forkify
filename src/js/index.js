@@ -15,6 +15,7 @@ import List from "./models/List";
 import * as searchView from "./views/SearchView";
 import * as recipeView from "./views/RecipeView";
 import * as listView from "./views/ListView";
+import * as likesView from "./views/LikesView";
 import { elements, renderLoader, clearLoader } from "./views/base";
 import Likes from "./models/Likes";
 
@@ -80,7 +81,7 @@ const controlRecipe = async () => {
       // Render Recipe
 
       clearLoader();
-      recipeView.renderRecipe(state.recipe);
+      recipeView.renderRecipe(state.recipe, state.likes.isLiked(id));
     } catch (error) {
       console.log(error);
       alert("Error Processing Recipe");
@@ -101,11 +102,14 @@ const controlList = () => {
   //
 };
 
+state.likes = new Likes();
+likesView.toggleLikeMenu(state.likes.getNumLikes());
 const controlLike = () => {
   if (!state.likes) {
     state.likes = new Likes();
   }
   const currentID = state.recipe.id;
+  // User has not yet liked current recipe
   if (!state.likes.isLiked(currentID)) {
     const newLike = state.likes.addLike(
       currentID,
@@ -113,12 +117,17 @@ const controlLike = () => {
       state.recipe.author,
       state.recipe.img
     );
+    likesView.toggleLikeBtn(true);
+    likesView.renderLike(newLike);
 
     console.log(state.likes);
   } else {
     state.likes.deleteLike(currentID);
-    console.log(state.likes);
+
+    likesView.toggleLikeBtn(false);
+    likesView.deleteLike(currentID);
   }
+  likesView.toggleLikeMenu(state.likes.getNumLikes());
 };
 
 elements.searchForm.addEventListener("submit", e => {
